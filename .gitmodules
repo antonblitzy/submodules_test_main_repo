@@ -1,12 +1,15 @@
 [submodule "subrepo_3"]
 path = subrepo_3
 url = git@github.com:antonblitzy/submodule_test_submodule_3.git
+	branch = main
 
 [submodule "subrepos/subrepo_1"]
 path = subrepos/subrepo_1
 url = git@github.com:antonblitzy/submodule_test_submodule_1.git
+	branch = main
 
 [submodule "subrepos/subrepo_2"]
 path = subrepos/subrepo_2
 url = git@github.com:antonblitzy/submodule_test_submodule_2.git
+	branch = main
 
