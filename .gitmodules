@@ -5,10 +5,11 @@ url = git@github.com:antonblitzy/submodule_test_submodule_3.git
 
 [submodule "subrepos/subrepo_1"]
 path = subrepos/subrepo_1
-url = git@github.com:antonblitzy1/submodule_test_submodule_1.git
+url = git@github.com:antonblitzy/submodule_test_submodule_1.git
 	branch = main
 
 [submodule "subrepos/subrepo_2"]
 path = subrepos/subrepo_2
 url = git@github.com:antonblitzy/submodule_test_submodule_2.git
 	branch = main
+
