@@ -1,2 +1,6 @@
 flask==3.1.3
+# NOTE: pytest 9.0.2 is affected by CVE-2025-71176 (insecure temporary
+# directory handling on UNIX, CWE-379). This is a dev-only dependency with
+# no runtime impact on the health endpoint. No patched version is available
+# as of 2026-02-24. Upgrade when a fix is released.
 pytest==9.0.2
