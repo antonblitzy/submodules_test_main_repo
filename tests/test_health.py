@@ -10,9 +10,13 @@ Test coverage includes:
     - application/json content type in the response
     - Exact JSON body {"health": "ok"}
     - HTTP 405 Method Not Allowed on POST /health
+    - Standard security headers attached to every response
+    - Server header override (no Werkzeug version disclosure)
+    - Security headers also applied to error responses (404, 405)
 """
 
 import pytest
+
 from app import app
 
 
@@ -92,3 +96,86 @@ def test_health_endpoint_method_not_allowed(client):
     """
     response = client.post("/health")
     assert response.status_code == 405
+
+
+def test_health_endpoint_sets_security_headers(client):
+    """Verify the standard security headers are attached to /health.
+
+    Confirms the @app.after_request handler applies the OWASP A05
+    baseline security headers to the successful 200 OK response from
+    the health endpoint. These headers harden the application against
+    MIME sniffing, clickjacking, framed embedding, plaintext HTTP
+    fallback, and intermediary caching of liveness data.
+
+    Args:
+        client: Flask test client fixture for making HTTP requests.
+    """
+    response = client.get("/health")
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert (
+        response.headers.get("Content-Security-Policy")
+        == "default-src 'none'; frame-ancestors 'none'"
+    )
+    assert (
+        response.headers.get("Strict-Transport-Security")
+        == "max-age=31536000; includeSubDomains"
+    )
+    assert response.headers.get("Cache-Control") == "no-store"
+
+
+def test_health_endpoint_server_header_override(client):
+    """Verify the Server header is overridden to a generic value.
+
+    Confirms the @app.after_request handler replaces the default
+    Werkzeug Server header (e.g., 'Werkzeug/3.1.8 Python/3.12.13')
+    with a non-disclosing generic value. This mitigates the version
+    disclosure flagged by security scanners and reduces an attacker's
+    ability to fingerprint the underlying framework and runtime.
+
+    Args:
+        client: Flask test client fixture for making HTTP requests.
+    """
+    response = client.get("/health")
+    server_header = response.headers.get("Server", "")
+    assert server_header == "health-check"
+    assert "Werkzeug" not in server_header
+    assert "Python" not in server_header
+
+
+def test_security_headers_applied_to_404(client):
+    """Verify security headers are attached even to 404 error responses.
+
+    Confirms the @app.after_request handler runs for client error
+    responses, not just successful responses. Flask's built-in 404
+    handler must also receive the standard security header set, so
+    that probing attempts (which often produce 404s) do not bypass
+    the application's defense-in-depth posture.
+
+    Args:
+        client: Flask test client fixture for making HTTP requests.
+    """
+    response = client.get("/this-route-does-not-exist")
+    assert response.status_code == 404
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.headers.get("Server") == "health-check"
+
+
+def test_security_headers_applied_to_405(client):
+    """Verify security headers are attached to 405 Method Not Allowed responses.
+
+    Confirms the @app.after_request handler runs for method-not-allowed
+    responses, ensuring even rejected method probes (POST /health,
+    DELETE /health, etc.) carry the standard security header set.
+
+    Args:
+        client: Flask test client fixture for making HTTP requests.
+    """
+    response = client.post("/health")
+    assert response.status_code == 405
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.headers.get("Server") == "health-check"
