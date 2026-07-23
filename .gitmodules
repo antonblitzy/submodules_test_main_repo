@@ -19,3 +19,6 @@ url = git@github.com:antonblitzy/submodule_test_submodule_2.git
 [submodule "cross_org_submodule"]
 	path = cross_org_submodule
 	url = https://github.com/alex-blitzy-test/test_repo_submodule.git
+[submodule "cross_org_ghes_submodule"]
+	path = cross_org_ghes_submodule
+	url = git@github.blitzy.dev:anton/test.git
