@@ -13,9 +13,6 @@ path = subrepos/subrepo_2
 url = git@github.com:antonblitzy/submodule_test_submodule_2.git
 	branch = main
 
-[submodule "libvirt_keepawake"]
-	path = libvirt_keepawake
-	url = https://github.com/anlorn/libvirt_keepawake.git
 [submodule "cross_org_submodule"]
 	path = cross_org_submodule
 	url = https://github.com/alex-blitzy-test/test_repo_submodule.git
